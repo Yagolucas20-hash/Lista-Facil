@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ListaFácil" />
+  <title>ListaFácil — Sua lista inteligente</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg2: #13131a;
+      --bg3: #1c1c26;
+      --border: rgba(255,255,255,0.07);
+      --accent: #4ade80;
+      --accent2: #22d3ee;
+      --accent3: #f59e0b;
+      --danger: #f87171;
+      --text: #f0f0f5;
+      --text2: #9090aa;
+      --text3: #5a5a72;
+      --card: #16161f;
+      --premium: #f59e0b;
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+    .light-mode {
+      --bg: #f4f4f8;
+      --bg2: #ffffff;
+      --bg3: #eaeaf0;
+      --border: rgba(0,0,0,0.08);
+      --text: #0a0a0f;
+      --text2: #555566;
+      --text3: #aaaabc;
+      --card: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+    h1,h2,h3,h4 { font-family: 'Syne', sans-serif; }
+
+    /* ── APP SHELL ── */
+    #app { display: flex; flex-direction: column; height: 100dvh; max-width: 480px; margin: 0 auto; position: relative; overflow: hidden; }
+
+    /* ── TOP BAR ── */
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; background: var(--bg); position: relative; z-index: 10; }
+    .topbar-logo { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+    .topbar-logo span { color: var(--accent); }
+    .topbar-actions { display: flex; gap: 8px; align-items: center; }
+    .icon-btn { width: 38px; height: 38px; border-radius: 50%; background: var(--bg3); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; transition: all .2s; }
+    .icon-btn:active { transform: scale(0.92); }
+    .premium-badge { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; font-family: 'Syne', sans-serif; letter-spacing: 0.5px; cursor: pointer; }
+
+    /* ── PAGES ── */
+    .pages { flex: 1; overflow: hidden; position: relative; }
+    .page { position: absolute; inset: 0; overflow-y: auto; padding: 0 20px 100px; opacity: 0; pointer-events: none; transform: translateY(12px); transition: all .3s cubic-bezier(.4,0,.2,1); }
+    .page.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+    .page::-webkit-scrollbar { display: none; }
+
+    /* ── BOTTOM NAV ── */
+    .bottomnav { position: absolute; bottom: 0; left: 0; right: 0; height: 72px; background: var(--bg2); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-around; padding: 0 8px; backdrop-filter: blur(20px); z-index: 20; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 8px 16px; border-radius: 12px; transition: all .2s; flex: 1; }
+    .nav-item .nav-icon { font-size: 22px; transition: transform .2s; }
+    .nav-item .nav-label { font-size: 10px; color: var(--text3); font-weight: 500; transition: color .2s; }
+    .nav-item.active .nav-icon { transform: scale(1.15); }
+    .nav-item.active .nav-label { color: var(--accent); }
+    .nav-item:active { background: var(--bg3); }
+
+    /* ── SECTION HEADER ── */
+    .section-header { padding: 20px 0 12px; }
+    .section-header h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+    .section-header p { color: var(--text2); font-size: 13px; margin-top: 4px; }
+
+    /* ── CARD ── */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+
+    /* ── LISTA PAGE ── */
+    .market-selector { display: flex; align-items: center; gap: 10px; background: var(--bg3); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 16px; cursor: pointer; border: 1px solid var(--border); }
+    .market-selector .ms-icon { font-size: 20px; }
+    .market-selector .ms-info { flex: 1; }
+    .market-selector .ms-label { font-size: 11px; color: var(--text3); }
+    .market-selector .ms-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .market-selector .ms-arrow { color: var(--text3); font-size: 12px; }
+
+    .add-item-bar { display: flex; gap: 8px; margin-bottom: 20px; }
+    .add-item-input { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; transition: border-color .2s; }
+    .add-item-input:focus { border-color: var(--accent); }
+    .add-item-input::placeholder { color: var(--text3); }
+    .add-btn { width: 46px; height: 46px; background: var(--accent); border: none; border-radius: var(--radius-sm); font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #0a0a0f; font-weight: 700; transition: all .2s; flex-shrink: 0; }
+    .add-btn:active { transform: scale(0.92); }
+
+    /* suggestion chip */
+    .suggestions { display: flex; gap: 8px; flex-wrap: nowrap; overflow-x: auto; margin-bottom: 16px; padding-bottom: 4px; }
+    .suggestions::-webkit-scrollbar { display: none; }
+    .suggestion-chip { background: var(--bg3); border: 1px solid var(--border); border-radius: 20px; padding: 6px 12px; font-size: 12px; white-space: nowrap; cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 4px; }
+    .suggestion-chip:active { background: var(--accent); color: #0a0a0f; border-color: var(--accent); }
+
+    /* category group */
+    .cat-group { margin-bottom: 16px; }
+    .cat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding: 0 2px; }
+    .cat-title { display: flex; align-items: center; gap: 6px; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; }
+    .cat-total { font-size: 12px; color: var(--accent); font-weight: 600; }
+
+    /* item card */
+    .item-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; overflow: hidden; transition: all .2s; }
+    .item-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; }
+    .item-emoji { font-size: 22px; width: 32px; text-align: center; flex-shrink: 0; }
+    .item-info { flex: 1; min-width: 0; }
+    .item-name { font-size: 14px; font-weight: 500; }
+    .item-meta { font-size: 12px; color: var(--text3); margin-top: 1px; }
+    .item-price-tag { font-size: 13px; font-weight: 600; color: var(--accent); flex-shrink: 0; }
+    .item-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; transition: all .2s; flex-shrink: 0; cursor: pointer; }
+    .item-check.checked { background: var(--accent); border-color: var(--accent); color: #0a0a0f; }
+    .item-card.checked-item { opacity: 0.5; }
+    .item-card.checked-item .item-name { text-decoration: line-through; }
+
+    /* item expand */
+    .item-expand { display: none; padding: 0 14px 12px; border-top: 1px solid var(--border); }
+    .item-expand.open { display: block; }
+    .expand-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .expand-field { display: flex; flex-direction: column; gap: 4px; }
+    .expand-label { font-size: 11px; color: var(--text3); font-weight: 500; }
+    .expand-input { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; transition: border-color .2s; width: 100%; }
+    .expand-input:focus { border-color: var(--accent); }
+    .expand-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .expand-btn { flex: 1; padding: 8px; border-radius: 8px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .2s; }
+    .expand-btn.save { background: var(--accent); color: #0a0a0f; }
+    .expand-btn.del { background: var(--bg3); color: var(--danger); border: 1px solid var(--border); }
+    .expand-btn:active { transform: scale(0.96); }
+
+    /* alert box */
+    .alert-box { background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.04)); border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 12px; display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--text2); line-height: 1.4; }
+    .alert-box .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+    /* totals bar */
+    .totals-bar { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
+    .totals-row { display: flex; justify-content: space-between; align-items: center; }
+    .totals-row + .totals-row { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+    .totals-label { font-size: 13px; color: var(--text2); }
+    .totals-value { font-size: 15px; font-weight: 700; font-family: 'Syne', sans-serif; }
+    .totals-value.grand { font-size: 20px; color: var(--accent); }
+
+    /* empty state */
+    .empty-state { text-align: center; padding: 60px 20px; }
+    .empty-state .es-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.6; }
+    .empty-state h3 { font-size: 18px; margin-bottom: 8px; }
+    .empty-state p { font-size: 14px; color: var(--text2); line-height: 1.5; }
+
+    /* limit bar */
+    .limit-bar { background: var(--bg3); border-radius: 20px; height: 4px; margin-bottom: 16px; overflow: hidden; }
+    .limit-fill { height: 100%; border-radius: 20px; background: var(--accent); transition: width .5s; }
+    .limit-fill.warn { background: var(--accent3); }
+    .limit-fill.danger { background: var(--danger); }
+    .limit-text { font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+
+    /* ── MERCADOS PAGE ── */
+    .market-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; cursor: pointer; transition: all .2s; }
+    .market-card:active { transform: scale(0.98); }
+    .market-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .market-avatar { width: 44px; height: 44px; border-radius: 12px; background: var(--bg3); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    .market-card-info { flex: 1; }
+    .market-card-name { font-size: 16px; font-weight: 700; font-family: 'Syne', sans-serif; }
+    .market-card-visits { font-size: 12px; color: var(--text3); }
+    .market-card-total { font-size: 18px; font-weight: 800; font-family: 'Syne', sans-serif; color: var(--accent); }
+    .market-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .mstat { background: var(--bg3); border-radius: 8px; padding: 8px; text-align: center; }
+    .mstat-value { font-size: 14px; font-weight: 700; font-family: 'Syne', sans-serif; }
+    .mstat-label { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+    .compare-banner { background: linear-gradient(135deg, var(--bg3), var(--bg2)); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 20px; }
+    .compare-banner h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .compare-banner p { font-size: 12px; color: var(--text2); line-height: 1.4; }
+    .compare-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .compare-item:last-child { border-bottom: none; }
+    .compare-product { font-size: 13px; font-weight: 500; }
+    .compare-markets { display: flex; gap: 6px; align-items: center; }
+    .compare-tag { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+    .compare-tag.cheap { background: rgba(74,222,128,0.15); color: var(--accent); }
+    .compare-tag.expensive { background: rgba(248,113,113,0.1); color: var(--danger); }
+
+    /* ── ANÁLISE PAGE ── */
+    .month-selector { display: flex; align-items: center; justify-content: space-between; background: var(--bg3); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 20px; }
+    .month-btn { background: none; border: none; color: var(--text2); font-size: 18px; cursor: pointer; padding: 4px 8px; }
+    .month-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
+
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+    .stat-card-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-card-value { font-size: 22px; font-weight: 800; font-family: 'Syne', sans-serif; }
+    .stat-card-sub { font-size: 11px; color: var(--text2); margin-top: 3px; }
+    .stat-card-value.green { color: var(--accent); }
+    .stat-card-value.yellow { color: var(--accent3); }
+    .stat-card-value.red { color: var(--danger); }
+
+    /* bar chart */
+    .bar-chart { margin-bottom: 20px; }
+    .bar-chart-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+    .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .bar-name { font-size: 12px; color: var(--text2); width: 90px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bar-track { flex: 1; height: 8px; background: var(--bg3); border-radius: 20px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 20px; background: var(--accent); transition: width 1s cubic-bezier(.4,0,.2,1); }
+    .bar-value { font-size: 12px; font-weight: 600; width: 60px; text-align: right; flex-shrink: 0; }
+
+    /* trend line */
+    .trend-chart { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 20px; }
+    .trend-chart-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 16px; }
+    .trend-svg { width: 100%; height: 100px; }
+
+    /* ── ORÇAMENTO PAGE ── */
+    .budget-circle { display: flex; justify-content: center; margin: 20px 0; }
+    .budget-ring { position: relative; width: 160px; height: 160px; }
+    .budget-ring svg { transform: rotate(-90deg); }
+    .budget-ring-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .budget-ring-pct { font-size: 32px; font-weight: 800; font-family: 'Syne', sans-serif; }
+    .budget-ring-label { font-size: 11px; color: var(--text3); }
+    .budget-detail { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+    .budget-detail-item { text-align: center; }
+    .budget-detail-val { font-size: 16px; font-weight: 700; font-family: 'Syne', sans-serif; }
+    .budget-detail-label { font-size: 11px; color: var(--text3); }
+    .budget-set-btn { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; color: #0a0a0f; font-family: 'Syne', sans-serif; cursor: pointer; transition: all .2s; margin-bottom: 20px; }
+    .budget-set-btn:active { transform: scale(0.98); }
+
+    /* notification item */
+    .notif-item { display: flex; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-top: 5px; flex-shrink: 0; }
+    .notif-dot.yellow { background: var(--accent3); }
+    .notif-dot.red { background: var(--danger); }
+    .notif-text { font-size: 13px; line-height: 1.4; }
+    .notif-time { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+    /* ── PREMIUM MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 100; display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity .3s; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-sheet { background: var(--bg2); border-radius: 24px 24px 0 0; padding: 24px 20px 40px; width: 100%; max-width: 480px; margin: 0 auto; transform: translateY(100%); transition: transform .4s cubic-bezier(.4,0,.2,1); border-top: 1px solid var(--border); }
+    .modal-overlay.open .modal-sheet { transform: translateY(0); }
+    .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+    .modal-title { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 6px; }
+    .modal-sub { font-size: 13px; color: var(--text2); text-align: center; margin-bottom: 24px; line-height: 1.5; }
+    .feature-list { margin-bottom: 24px; }
+    .feature-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .feature-item:last-child { border-bottom: none; }
+    .feature-check { color: var(--accent); font-size: 16px; flex-shrink: 0; }
+    .plan-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .plan-card { border: 2px solid var(--border); border-radius: var(--radius); padding: 14px; cursor: pointer; transition: all .2s; text-align: center; }
+    .plan-card.selected { border-color: var(--accent); background: rgba(74,222,128,0.06); }
+    .plan-card .plan-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+    .plan-card .plan-price { font-size: 22px; font-weight: 800; font-family: 'Syne', sans-serif; color: var(--accent); }
+    .plan-card .plan-period { font-size: 11px; color: var(--text3); }
+    .plan-card .plan-badge { background: var(--accent3); color: #0a0a0f; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; display: inline-block; margin-top: 4px; }
+    .subscribe-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--accent), #22d3ee); border: none; border-radius: var(--radius-sm); font-size: 16px; font-weight: 800; color: #0a0a0f; font-family: 'Syne', sans-serif; cursor: pointer; transition: all .2s; }
+    .subscribe-btn:active { transform: scale(0.98); }
+    .modal-close { position: absolute; top: 20px; right: 20px; background: var(--bg3); border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 16px; cursor: pointer; color: var(--text); }
+
+    /* market modal */
+    .market-modal-list { margin-top: 12px; }
+    .market-modal-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: var(--radius-sm); cursor: pointer; transition: background .2s; }
+    .market-modal-item:active { background: var(--bg3); }
+    .market-modal-icon { font-size: 22px; }
+    .market-modal-name { font-size: 14px; font-weight: 500; }
+    .market-modal-add { display: flex; gap: 8px; margin-top: 12px; }
+    .market-modal-input { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; }
+    .market-modal-input:focus { border-color: var(--accent); }
+    .market-add-btn { padding: 10px 16px; background: var(--accent); border: none; border-radius: 8px; font-size: 13px; font-weight: 700; color: #0a0a0f; cursor: pointer; font-family: 'Syne', sans-serif; }
+
+    /* goal modal */
+    .goal-input-wrap { margin: 16px 0; }
+    .goal-input-label { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
+    .goal-input-big { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; font-size: 24px; font-weight: 700; color: var(--text); font-family: 'Syne', sans-serif; outline: none; text-align: center; }
+    .goal-input-big:focus { border-color: var(--accent); }
+    .goal-save-btn { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; color: #0a0a0f; font-family: 'Syne', sans-serif; cursor: pointer; }
+
+    /* share btn */
+    .share-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; background: #25D366; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; color: white; font-family: 'Syne', sans-serif; cursor: pointer; margin-bottom: 12px; transition: all .2s; }
+    .share-btn:active { transform: scale(0.98); }
+
+    /* toast */
+    .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 10px 18px; font-size: 13px; font-weight: 500; z-index: 200; opacity: 0; transition: all .3s; white-space: nowrap; box-shadow: 0 8px 32px rgba(0,0,0,0.3); pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* loading spinner */
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* profile page */
+    .profile-header { text-align: center; padding: 20px 0; }
+    .profile-avatar { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 12px; }
+    .profile-name { font-size: 20px; font-weight: 800; font-family: 'Syne', sans-serif; }
+    .profile-plan { font-size: 12px; color: var(--text3); margin-top: 4px; }
+    .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-row-left { display: flex; align-items: center; gap: 10px; }
+    .setting-icon { font-size: 18px; }
+    .setting-label { font-size: 14px; }
+    .setting-arrow { color: var(--text3); font-size: 12px; }
+    .toggle { width: 44px; height: 24px; border-radius: 12px; background: var(--bg3); border: 1px solid var(--border); position: relative; cursor: pointer; transition: background .2s; }
+    .toggle.on { background: var(--accent); border-color: var(--accent); }
+    .toggle-knob { width: 18px; height: 18px; border-radius: 50%; background: white; position: absolute; top: 2px; left: 2px; transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    .toggle.on .toggle-knob { transform: translateX(20px); }
+
+    /* animations */
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .item-card { animation: fadeInUp .2s ease; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-logo">Lista<span>Fácil</span></div>
+    <div class="topbar-actions">
+      <div class="icon-btn" id="themeToggle" title="Alternar tema">🌙</div>
+      <div class="premium-badge" onclick="openModal('premiumModal')">✨ PRO</div>
+    </div>
+  </div>
+
+  <!-- PAGES -->
+  <div class="pages">
+
+    <!-- ── LISTA PAGE ── -->
+    <div class="page active" id="page-lista">
+
+      <!-- Market Selector -->
+      <div class="market-selector" onclick="openModal('marketModal')">
+        <span class="ms-icon" id="msIcon">🏪</span>
+        <div class="ms-info">
+          <div class="ms-label">Comprando em</div>
+          <div class="ms-name" id="msName">Selecionar mercado</div>
+        </div>
+        <span class="ms-arrow">▼</span>
+      </div>
+
+      <!-- Limit Bar -->
+      <div class="limit-text" id="limitText">0 / 30 itens (plano gratuito)</div>
+      <div class="limit-bar"><div class="limit-fill" id="limitFill" style="width:0%"></div></div>
+
+      <!-- Add Item -->
+      <div class="add-item-bar">
+        <input class="add-item-input" id="newItemInput" placeholder="Adicionar item..." autocomplete="off" />
+        <button class="add-btn" id="addBtn" onclick="addItem()">+</button>
+      </div>
+
+      <!-- Suggestions -->
+      <div class="suggestions" id="suggestionsRow"></div>
+
+      <!-- Alert Box (price alert) -->
+      <div class="alert-box" id="priceAlert" style="display:none">
+        <span class="alert-icon">💡</span>
+        <span id="priceAlertText"></span>
+      </div>
+
+      <!-- Items list -->
+      <div id="itemsList"></div>
+
+      <!-- Totals -->
+      <div class="totals-bar" id="totalsBar" style="display:none">
+        <div id="catTotalsRows"></div>
+        <div class="totals-row">
+          <span class="totals-label">💰 Total geral</span>
+          <span class="totals-value grand" id="grandTotal">R$ 0,00</span>
+        </div>
+      </div>
+
+      <!-- Share -->
+      <button class="share-btn" id="shareBtn" style="display:none" onclick="shareList()">
+        <span>📲</span> Compartilhar lista no WhatsApp
+      </button>
+
+    </div>
+
+    <!-- ── MERCADOS PAGE ── -->
+    <div class="page" id="page-mercados">
+      <div class="section-header">
+        <h2>🏪 Mercados</h2>
+        <p>Histórico e comparativo de preços</p>
+      </div>
+
+      <div class="compare-banner" id="compareBanner" style="display:none">
+        <h3>📊 Comparativo de preços</h3>
+        <p style="margin-bottom:10px">Produtos onde você pode economizar:</p>
+        <div id="compareItems"></div>
+      </div>
+
+      <div id="marketsList"></div>
+
+      <div class="empty-state" id="marketsEmpty">
+        <div class="es-icon">🏪</div>
+        <h3>Nenhum mercado ainda</h3>
+        <p>Selecione um mercado ao criar sua lista e o histórico aparecerá aqui.</p>
+      </div>
+    </div>
+
+    <!-- ── ANÁLISE PAGE ── -->
+    <div class="page" id="page-analise">
+      <div class="section-header">
+        <h2>📊 Análise</h2>
+        <p>Seus gastos detalhados</p>
+      </div>
+
+      <div class="month-selector">
+        <button class="month-btn" onclick="changeMonth(-1)">‹</button>
+        <span class="month-name" id="monthName">Abril 2026</span>
+        <button class="month-btn" onclick="changeMonth(1)">›</button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-card-label">Total gasto</div>
+          <div class="stat-card-value green" id="statTotal">R$ 0</div>
+          <div class="stat-card-sub" id="statVsLast">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Compras</div>
+          <div class="stat-card-value" id="statVisits">0</div>
+          <div class="stat-card-sub">visitas ao mercado</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Ticket médio</div>
+          <div class="stat-card-value yellow" id="statTicket">R$ 0</div>
+          <div class="stat-card-sub">por visita</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Economia</div>
+          <div class="stat-card-value green" id="statSavings">R$ 0</div>
+          <div class="stat-card-sub">vs. mês anterior</div>
+        </div>
+      </div>
+
+      <!-- Bar chart por categoria -->
+      <div class="card bar-chart">
+        <div class="bar-chart-title">Gasto por categoria</div>
+        <div id="catBarsContainer">
+          <div style="text-align:center;color:var(--text3);font-size:13px;padding:20px 0">Sem dados neste mês</div>
+        </div>
+      </div>
+
+      <!-- Trend -->
+      <div class="trend-chart">
+        <div class="trend-chart-title">Evolução mensal</div>
+        <svg class="trend-svg" id="trendSvg" viewBox="0 0 300 100" preserveAspectRatio="none">
+          <text x="150" y="55" text-anchor="middle" fill="var(--text3)" font-size="12">Sem dados suficientes</text>
+        </svg>
+      </div>
+
+      <!-- Premium lock for full analysis -->
+      <div class="card" style="text-align:center;padding:24px">
+        <div style="font-size:32px;margin-bottom:10px">🔒</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:6px">Análise completa</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Comparativo entre mercados, relatório PDF e mais.</div>
+        <button style="padding:10px 20px;background:linear-gradient(135deg,#f59e0b,#ef4444);border:none;border-radius:8px;color:white;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;font-size:13px" onclick="openModal('premiumModal')">Ver planos ✨</button>
+      </div>
+    </div>
+
+    <!-- ── ORÇAMENTO PAGE ── -->
+    <div class="page" id="page-orcamento">
+      <div class="section-header">
+        <h2>💰 Orçamento</h2>
+        <p>Controle seus gastos mensais</p>
+      </div>
+
+      <div class="budget-circle">
+        <div class="budget-ring">
+          <svg width="160" height="160" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="68" fill="none" stroke="var(--bg3)" stroke-width="12"/>
+            <circle cx="80" cy="80" r="68" fill="none" stroke="var(--accent)" stroke-width="12"
+              stroke-dasharray="427" stroke-dashoffset="427" stroke-linecap="round"
+              id="budgetCircle" style="transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)"/>
+          </svg>
+          <div class="budget-ring-text">
+            <span class="budget-ring-pct" id="budgetPct">0%</span>
+            <span class="budget-ring-label">usado</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="budget-detail">
+        <div class="budget-detail-item">
+          <div class="budget-detail-val" id="bdSpent">R$ 0</div>
+          <div class="budget-detail-label">Gasto</div>
+        </div>
+        <div class="budget-detail-item">
+          <div class="budget-detail-val" id="bdLimit" style="color:var(--accent3)">—</div>
+          <div class="budget-detail-label">Limite</div>
+        </div>
+        <div class="budget-detail-item">
+          <div class="budget-detail-val" id="bdLeft" style="color:var(--accent)">—</div>
+          <div class="budget-detail-label">Restante</div>
+        </div>
+      </div>
+
+      <button class="budget-set-btn" onclick="openModal('goalModal')">🎯 Definir meta mensal</button>
+
+      <!-- Notificações -->
+      <div class="card">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:12px">🔔 Notificações</div>
+        <div id="notifList">
+          <div class="notif-item">
+            <div class="notif-dot yellow"></div>
+            <div>
+              <div class="notif-text">Você costuma fazer compras nessa época do mês!</div>
+              <div class="notif-time">Sugestão inteligente</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meta economia -->
+      <div class="card" style="margin-top:12px">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:4px">🏆 Meta de economia</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Quanto quer economizar esse mês?</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:24px;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent)" id="savingsGoal">Não definida</span>
+          <button style="padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif" onclick="openModal('goalModal')">Definir</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PERFIL PAGE ── -->
+    <div class="page" id="page-perfil">
+      <div class="profile-header">
+        <div class="profile-avatar">👤</div>
+        <div class="profile-name">Meu Perfil</div>
+        <div class="profile-plan" id="planLabel">Plano Gratuito</div>
+      </div>
+
+      <div class="card">
+        <div class="setting-row" onclick="openModal('premiumModal')">
+          <div class="setting-row-left"><span class="setting-icon">✨</span><span class="setting-label">Assinar Premium</span></div>
+          <span style="background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:12px;font-weight:700">VER PLANOS ›</span>
+        </div>
+        <div class="setting-row">
+          <div class="setting-row-left"><span class="setting-icon">🌙</span><span class="setting-label">Modo escuro</span></div>
+          <div class="toggle on" id="darkToggle" onclick="toggleTheme()"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-row-left"><span class="setting-icon">🔔</span><span class="setting-label">Notificações</span></div>
+          <div class="toggle on" id="notifToggle" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="setting-row" onclick="exportPDF()">
+          <div class="setting-row-left"><span class="setting-icon">📄</span><span class="setting-label">Exportar relatório PDF</span></div>
+          <span class="setting-arrow">›</span>
+        </div>
+        <div class="setting-row" onclick="clearData()">
+          <div class="setting-row-left"><span class="setting-icon">🗑️</span><span class="setting-label" style="color:var(--danger)">Limpar dados</span></div>
+          <span class="setting-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:0">
+        <div style="font-size:12px;color:var(--text3);text-align:center;line-height:1.6">
+          ListaFácil v1.0<br>Feito com 💚 para economizar seu dinheiro
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /pages -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottomnav">
+    <div class="nav-item active" onclick="goPage('lista',this)">
+      <span class="nav-icon">🛒</span>
+      <span class="nav-label">Lista</span>
+    </div>
+    <div class="nav-item" onclick="goPage('mercados',this)">
+      <span class="nav-icon">🏪</span>
+      <span class="nav-label">Mercados</span>
+    </div>
+    <div class="nav-item" onclick="goPage('analise',this)">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Análise</span>
+    </div>
+    <div class="nav-item" onclick="goPage('orcamento',this)">
+      <span class="nav-icon">💰</span>
+      <span class="nav-label">Orçamento</span>
+    </div>
+    <div class="nav-item" onclick="goPage('perfil',this)">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Perfil</span>
+    </div>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- ── MODALS ── -->
+
+<!-- Premium Modal -->
+<div class="modal-overlay" id="premiumModal" onclick="closeModalOutside(event,'premiumModal')">
+  <div class="modal-sheet" style="position:relative">
+    <button class="modal-close" onclick="closeModal('premiumModal')">✕</button>
+    <div class="modal-handle"></div>
+    <div class="modal-title">✨ ListaFácil Pro</div>
+    <div class="modal-sub">Desbloqueie tudo e economize de verdade no mercado!</div>
+    <div class="feature-list">
+      <div class="feature-item"><span class="feature-check">✓</span>Listas e itens ilimitados</div>
+      <div class="feature-item"><span class="feature-check">✓</span>Múltiplos mercados + comparativo</div>
+      <div class="feature-item"><span class="feature-check">✓</span>Histórico completo + análise mensal</div>
+      <div class="feature-item"><span class="feature-check">✓</span>Lista compartilhada família/casal</div>
+      <div class="feature-item"><span class="feature-check">✓</span>Alertas de preço suspeito</div>
+      <div class="feature-item"><span class="feature-check">✓</span>Notificações inteligentes</div>
+      <div class="feature-item"><span class="feature-check">✓</span>Meta de economia mensal</div>
+      <div class="feature-item"><span class="feature-check">✓</span>Relatórios exportáveis em PDF</div>
+    </div>
+    <div class="plan-cards">
+      <div class="plan-card" id="planMonthly" onclick="selectPlan('monthly')">
+        <div class="plan-name">Mensal</div>
+        <div class="plan-price">R$14,90</div>
+        <div class="plan-period">/mês</div>
+      </div>
+      <div class="plan-card selected" id="planAnnual" onclick="selectPlan('annual')">
+        <div class="plan-name">Anual</div>
+        <div class="plan-price">R$107,90</div>
+        <div class="plan-period">/ano</div>
+        <div class="plan-badge">40% OFF 🔥</div>
+      </div>
+    </div>
+    <button class="subscribe-btn" onclick="subscribe()">Assinar agora 🚀</button>
+  </div>
+</div>
+
+<!-- Market Modal -->
+<div class="modal-overlay" id="marketModal" onclick="closeModalOutside(event,'marketModal')">
+  <div class="modal-sheet" style="position:relative">
+    <button class="modal-close" onclick="closeModal('marketModal')">✕</button>
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="font-size:18px;text-align:left">🏪 Selecionar mercado</div>
+    <div class="market-modal-list" id="marketModalList"></div>
+    <div class="market-modal-add">
+      <input class="market-modal-input" id="newMarketInput" placeholder="Adicionar mercado..." />
+      <button class="market-add-btn" onclick="addMarket()">+ Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Goal Modal -->
+<div class="modal-overlay" id="goalModal" onclick="closeModalOutside(event,'goalModal')">
+  <div class="modal-sheet" style="position:relative">
+    <button class="modal-close" onclick="closeModal('goalModal')">✕</button>
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="font-size:18px">🎯 Meta mensal</div>
+    <div class="goal-input-wrap">
+      <div class="goal-input-label">Quanto quer gastar no máximo este mês?</div>
+      <input class="goal-input-big" id="goalInput" type="number" placeholder="R$ 0,00" />
+    </div>
+    <button class="goal-save-btn" onclick="saveGoal()">Salvar meta</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──
+let state = {
+  items: [],
+  markets: ['Supermercado Extra','Atacadão','Carrefour','Pão de Açúcar','Mercadinho'],
+  currentMarket: null,
+  budget: null,
+  currentMonth: new Date().getMonth(),
+  currentYear: new Date().getFullYear(),
+  history: [], // {market, items, total, date}
+  darkMode: true,
+  isPremium: false,
+  selectedPlan: 'annual'
+};
+
+const FREE_LIMIT = 30;
+const MARKET_LIMIT_FREE = 1;
+
+const CATEGORIES = {
+  'Hortifruti': { emoji: '🥦', items: ['alface','tomate','cenoura','cebola','alho','batata','banana','maçã','laranja','limão','uva','abacaxi','melão','manga','couve','espinafre','brócolis','abobrinha','pepino','pimentão'] },
+  'Laticínios': { emoji: '🥛', items: ['leite','iogurte','queijo','manteiga','creme de leite','requeijão','nata','leite condensado'] },
+  'Carnes': { emoji: '🥩', items: ['frango','carne','peixe','linguiça','bacon','presunto','salsicha','hamburguer','costela','file','picanha','patinho','alcatra'] },
+  'Padaria': { emoji: '🍞', items: ['pão','bolo','torrada','biscoito','bolacha','macarrão','farinha','aveia','granola','cereal'] },
+  'Bebidas': { emoji: '🥤', items: ['suco','refrigerante','agua','cerveja','vinho','energetico','chá','café','achocolatado','vodka','whisky'] },
+  'Limpeza': { emoji: '🧹', items: ['detergente','sabão','amaciante','desinfetante','água sanitária','multiuso','esponja','vassoura','pano','rodo','limpador','alvejante'] },
+  'Higiene': { emoji: '🧴', items: ['shampoo','condicionador','sabonete','creme dental','escova','fio dental','desodorante','absorvente','papel higiênico','cotonete','perfume','hidratante'] },
+  'Mercearia': { emoji: '🥫', items: ['arroz','feijão','óleo','sal','açúcar','macarrão','molho','extrato','atum','sardinha','milho','ervilha','azeite','vinagre','ketchup','mostarda','maionese'] },
+  'Frios': { emoji: '🧀', items: ['mortadela','salame','peito de peru','mussarela','prato','minas'] },
+  'Congelados': { emoji: '🧊', items: ['sorvete','pizza','lasanha','nuggets','batata frita','salmão congelado','camarão'] },
+};
+
+const SUGGESTIONS = ['🥛 Leite','🍞 Pão','🍗 Frango','🥚 Ovos','🧀 Queijo','🍅 Tomate','🌾 Arroz','🫘 Feijão','🧴 Shampoo','🧹 Detergente'];
+const MARKET_EMOJIS = {'supermercado extra':'🛒','atacadão':'🏭','carrefour':'🛍️','pão de açúcar':'🍬','mercadinho':'🏪'};
+
+// ── INIT ──
+function init() {
+  loadState();
+  renderSuggestions();
+  renderItems();
+  renderMarketModal();
+  updateLimitBar();
+  updateBudgetCircle();
+  renderMarketsPage();
+  renderAnalise();
+  updateThemeToggle();
+  document.getElementById('newItemInput').addEventListener('keydown', e => { if(e.key==='Enter') addItem(); });
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('listafacil_state');
+    if(saved) { const s = JSON.parse(saved); Object.assign(state, s); }
+  } catch(e){}
+}
+
+function saveState() {
+  try { localStorage.setItem('listafacil_state', JSON.stringify(state)); } catch(e){}
+}
+
+// ── NAVIGATION ──
+function goPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='mercados') renderMarketsPage();
+  if(name==='analise') renderAnalise();
+  if(name==='orcamento') updateBudgetCircle();
+}
+
+// ── ADD ITEM ──
+async function addItem() {
+  const input = document.getElementById('newItemInput');
+  const name = input.value.trim();
+  if(!name) return;
+
+  if(!state.isPremium && state.items.length >= FREE_LIMIT) {
+    showToast('⚠️ Limite de '+FREE_LIMIT+' itens no plano gratuito!');
+    openModal('premiumModal'); return;
+  }
+
+  const btn = document.getElementById('addBtn');
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled = true;
+
+  const { category, emoji } = await detectCategoryAI(name);
+  const qty = 1;
+
+  const item = {
+    id: Date.now(),
+    name: capitalizeFirst(name),
+    category,
+    emoji,
+    qty,
+    unit: 'un',
+    price: null,
+    checked: false
+  };
+
+  state.items.push(item);
+  input.value = '';
+  saveState();
+  renderItems();
+  updateLimitBar();
+  checkSmartSuggestion(item);
+
+  btn.innerHTML = '+';
+  btn.disabled = false;
+  showToast('✅ '+item.emoji+' '+item.name+' adicionado!');
+}
+
+async function detectCategoryAI(itemName) {
+  // Try local match first (faster)
+  const lower = itemName.toLowerCase();
+  for(const [cat, data] of Object.entries(CATEGORIES)) {
+    if(data.items.some(i => lower.includes(i) || i.includes(lower))) {
+      return { category: cat, emoji: data.emoji };
+    }
+  }
+
+  // AI fallback
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 100,
+        messages: [{
+          role: 'user',
+          content: `Categorize este produto de supermercado: "${itemName}"\n\nCategorias disponíveis: Hortifruti, Laticínios, Carnes, Padaria, Bebidas, Limpeza, Higiene, Mercearia, Frios, Congelados\n\nResponda APENAS em JSON sem markdown: {"category":"CATEGORIA","emoji":"EMOJI_DO_PRODUTO"}`
+        }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.[0]?.text || '{}';
+    const clean = text.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    if(parsed.category && parsed.emoji) return parsed;
+  } catch(e){}
+
+  return { category: 'Mercearia', emoji: '🛒' };
+}
+
+function checkSmartSuggestion(newItem) {
+  // Package size suggestion
+  const sizeMatch = newItem.name.match(/(\d+)\s*ml/i);
+  if(sizeMatch) {
+    const ml = parseInt(sizeMatch[1]);
+    if(ml === 500) {
+      const similar = state.items.filter(i => i.name.toLowerCase().replace(/\d+\s*ml/i,'').trim() === newItem.name.toLowerCase().replace(/\d+\s*ml/i,'').trim() && i.id !== newItem.id);
+      if(!similar.length) {
+        const alert = document.getElementById('priceAlert');
+        document.getElementById('priceAlertText').textContent = `💡 Vi que adicionou ${newItem.name}. Em versões de 1L geralmente sai mais barato por ml!`;
+        alert.style.display = 'flex';
+        setTimeout(()=>{ alert.style.display='none'; }, 6000);
+      }
+    }
+  }
+  // Price alert
+  const history = getItemHistory(newItem.name);
+  if(history.length >= 2) {
+    const last = history[history.length-1];
+    const prev = history[history.length-2];
+    if(last && prev && last > prev * 1.3) {
+      const alert = document.getElementById('priceAlert');
+      document.getElementById('priceAlertText').textContent = `⚠️ Atenção! ${newItem.name} subiu ${Math.round((last/prev-1)*100)}% em relação à última compra!`;
+      alert.style.display = 'flex';
+    }
+  }
+}
+
+function getItemHistory(name) {
+  return state.history
+    .flatMap(h => h.items)
+    .filter(i => i.name.toLowerCase() === name.toLowerCase() && i.price)
+    .map(i => i.price);
+}
+
+// ── RENDER ITEMS ──
+function renderItems() {
+  const container = document.getElementById('itemsList');
+  const totalsBar = document.getElementById('totalsBar');
+  const shareBtn = document.getElementById('shareBtn');
+
+  if(state.items.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="es-icon">🛒</div><h3>Lista vazia</h3><p>Digite um produto acima para começar sua lista!</p></div>`;
+    totalsBar.style.display = 'none';
+    shareBtn.style.display = 'none';
+    return;
+  }
+
+  // Group by category
+  const groups = {};
+  state.items.forEach(item => {
+    if(!groups[item.category]) groups[item.category] = [];
+    groups[item.category].push(item);
+  });
+
+  let html = '';
+  let catTotalsHtml = '';
+  let grandTotal = 0;
+  let hasAnyPrice = false;
+
+  Object.entries(groups).forEach(([cat, items]) => {
+    const catData = CATEGORIES[cat] || { emoji: '📦' };
+    const catTotal = items.reduce((s,i) => s + (i.price ? i.price * i.qty : 0), 0);
+    if(catTotal > 0) hasAnyPrice = true;
+
+    html += `<div class="cat-group">
+      <div class="cat-header">
+        <div class="cat-title">${catData.emoji} ${cat}</div>
+        ${catTotal > 0 ? `<div class="cat-total">${fmt(catTotal)}</div>` : ''}
+      </div>`;
+
+    items.forEach(item => {
+      const total = item.price ? fmt(item.price * item.qty) : '—';
+      html += `
+        <div class="item-card ${item.checked?'checked-item':''}" id="card-${item.id}">
+          <div class="item-row" onclick="toggleExpand(${item.id})">
+            <span class="item-emoji">${item.emoji}</span>
+            <div class="item-info">
+              <div class="item-name">${item.name}</div>
+              <div class="item-meta">${item.qty} ${item.unit}${item.price?' · R$ '+item.price.toFixed(2).replace('.',','):''}</div>
+            </div>
+            <span class="item-price-tag">${total}</span>
+            <div class="item-check ${item.checked?'checked':''}" onclick="toggleCheck(event,${item.id})">
+              ${item.checked?'✓':''}
+            </div>
+          </div>
+          <div class="item-expand" id="expand-${item.id}">
+            <div class="expand-grid">
+              <div class="expand-field">
+                <span class="expand-label">Quantidade</span>
+                <input class="expand-input" type="number" value="${item.qty}" min="1" id="qty-${item.id}" placeholder="1" />
+              </div>
+              <div class="expand-field">
+                <span class="expand-label">Unidade</span>
+                <select class="expand-input" id="unit-${item.id}">
+                  ${['un','kg','g','L','ml','pct','cx','fardo'].map(u=>`<option ${item.unit===u?'selected':''}>${u}</option>`).join('')}
+                </select>
+              </div>
+              <div class="expand-field">
+                <span class="expand-label">Preço unitário (R$)</span>
+                <input class="expand-input" type="number" step="0.01" value="${item.price||''}" id="price-${item.id}" placeholder="0,00" />
+              </div>
+              <div class="expand-field">
+                <span class="expand-label">Categoria</span>
+                <select class="expand-input" id="cat-${item.id}">
+                  ${Object.keys(CATEGORIES).map(c=>`<option ${item.category===c?'selected':''}>${c}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+            <div class="expand-actions">
+              <button class="expand-btn save" onclick="saveItem(${item.id})">✓ Salvar</button>
+              <button class="expand-btn del" onclick="deleteItem(${item.id})">🗑 Remover</button>
+            </div>
+          </div>
+        </div>`;
+    });
+
+    html += '</div>';
+    if(catTotal > 0) {
+      grandTotal += catTotal;
+      catTotalsHtml += `<div class="totals-row"><span class="totals-label">${catData.emoji} ${cat}</span><span class="totals-value" style="font-size:14px">${fmt(catTotal)}</span></div>`;
+    }
+  });
+
+  container.innerHTML = html;
+
+  if(hasAnyPrice) {
+    totalsBar.style.display = 'block';
+    shareBtn.style.display = 'flex';
+    document.getElementById('catTotalsRows').innerHTML = catTotalsHtml;
+    document.getElementById('grandTotal').textContent = fmt(grandTotal);
+  } else {
+    totalsBar.style.display = 'none';
+    shareBtn.style.display = 'none';
+  }
+}
+
+function toggleExpand(id) {
+  const expand = document.getElementById('expand-'+id);
+  expand.classList.toggle('open');
+}
+
+function toggleCheck(e, id) {
+  e.stopPropagation();
+  const item = state.items.find(i => i.id === id);
+  if(item) { item.checked = !item.checked; saveState(); renderItems(); }
+}
+
+function saveItem(id) {
+  const item = state.items.find(i => i.id === id);
+  if(!item) return;
+  const qty = parseFloat(document.getElementById('qty-'+id).value) || 1;
+  const unit = document.getElementById('unit-'+id).value;
+  const price = parseFloat(document.getElementById('price-'+id).value) || null;
+  const cat = document.getElementById('cat-'+id).value;
+  const oldPrice = item.price;
+  Object.assign(item, { qty, unit, price, category: cat });
+  // price alert
+  if(price && oldPrice && price > oldPrice * 1.3) {
+    showToast('⚠️ Preço subiu '+Math.round((price/oldPrice-1)*100)+'%!');
+  }
+  saveState();
+  renderItems();
+  updateLimitBar();
+  updateBudgetCircle();
+  showToast('💾 Item salvo!');
+}
+
+function deleteItem(id) {
+  state.items = state.items.filter(i => i.id !== id);
+  saveState();
+  renderItems();
+  updateLimitBar();
+  showToast('🗑️ Item removido');
+}
+
+// ── LIMIT BAR ──
+function updateLimitBar() {
+  const count = state.items.length;
+  const pct = Math.min((count/FREE_LIMIT)*100, 100);
+  const fill = document.getElementById('limitFill');
+  const text = document.getElementById('limitText');
+  fill.style.width = pct+'%';
+  fill.className = 'limit-fill' + (pct>=100?' danger':pct>=70?' warn':'');
+  text.textContent = state.isPremium ? `${count} itens (ilimitado ✨)` : `${count} / ${FREE_LIMIT} itens (plano gratuito)`;
+}
+
+// ── SUGGESTIONS ──
+function renderSuggestions() {
+  const row = document.getElementById('suggestionsRow');
+  row.innerHTML = SUGGESTIONS.map(s =>
+    `<div class="suggestion-chip" onclick="quickAdd('${s.split(' ').slice(1).join(' ')}')">${s}</div>`
+  ).join('');
+}
+
+function quickAdd(name) {
+  document.getElementById('newItemInput').value = name;
+  addItem();
+}
+
+// ── MARKET ──
+function renderMarketModal() {
+  const list = document.getElementById('marketModalList');
+  const markets = state.isPremium ? state.markets : state.markets.slice(0, Math.max(MARKET_LIMIT_FREE+2, state.markets.length));
+  list.innerHTML = state.markets.map(m => {
+    const emoji = MARKET_EMOJIS[m.toLowerCase()] || '🏪';
+    const isSelected = state.currentMarket === m;
+    return `<div class="market-modal-item ${isSelected?'':''}${!state.isPremium && state.currentMarket && state.currentMarket!==m ? 'style="opacity:.5"':''}" onclick="selectMarket('${m}')">
+      <span class="market-modal-icon">${emoji}</span>
+      <span class="market-modal-name">${m}</span>
+      ${isSelected?'<span style="margin-left:auto;color:var(--accent)">✓</span>':''}
+    </div>`;
+  }).join('');
+}
+
+function selectMarket(name) {
+  if(!state.isPremium && state.currentMarket && state.currentMarket !== name) {
+    showToast('⚠️ Apenas 1 mercado no plano gratuito');
+    openModal('premiumModal'); return;
+  }
+  state.currentMarket = name;
+  const emoji = MARKET_EMOJIS[name.toLowerCase()] || '🏪';
+  document.getElementById('msIcon').textContent = emoji;
+  document.getElementById('msName').textContent = name;
+  saveState();
+  closeModal('marketModal');
+  showToast('🏪 Mercado selecionado: '+name);
+}
+
+function addMarket() {
+  const input = document.getElementById('newMarketInput');
+  const name = input.value.trim();
+  if(!name) return;
+  if(state.markets.includes(name)) { showToast('Mercado já existe!'); return; }
+  state.markets.push(name);
+  input.value = '';
+  saveState();
+  renderMarketModal();
+  showToast('✅ Mercado adicionado!');
+}
+
+// ── SAVE LIST TO HISTORY ──
+function finalizeList() {
+  if(!state.currentMarket || state.items.length === 0) return;
+  const total = state.items.reduce((s,i) => s + (i.price ? i.price*i.qty : 0), 0);
+  state.history.push({
+    market: state.currentMarket,
+    items: JSON.parse(JSON.stringify(state.items)),
+    total,
+    date: new Date().toISOString()
+  });
+  state.items = [];
+  state.currentMarket = null;
+  document.getElementById('msName').textContent = 'Selecionar mercado';
+  document.getElementById('msIcon').textContent = '🏪';
+  saveState();
+  renderItems();
+  showToast('✅ Lista finalizada e salva no histórico!');
+}
+
+// ── MARKETS PAGE ──
+function renderMarketsPage() {
+  const list = document.getElementById('marketsList');
+  const empty = document.getElementById('marketsEmpty');
+
+  // Group history by market
+  const byMarket = {};
+  state.history.forEach(h => {
+    if(!byMarket[h.market]) byMarket[h.market] = [];
+    byMarket[h.market].push(h);
+  });
+
+  if(Object.keys(byMarket).length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    document.getElementById('compareBanner').style.display = 'none';
+    return;
+  }
+
+  empty.style.display = 'none';
+  let html = '';
+
+  Object.entries(byMarket).forEach(([market, visits]) => {
+    const emoji = MARKET_EMOJIS[market.toLowerCase()] || '🏪';
+    const totalAll = visits.reduce((s,v) => s+v.total, 0);
+    const avgTicket = totalAll / visits.length;
+    const lastVisit = new Date(visits[visits.length-1].date).toLocaleDateString('pt-BR');
+
+    html += `<div class="market-card">
+      <div class="market-card-header">
+        <div class="market-avatar">${emoji}</div>
+        <div class="market-card-info">
+          <div class="market-card-name">${market}</div>
+          <div class="market-card-visits">${visits.length} visita${visits.length!==1?'s':''} · última em ${lastVisit}</div>
+        </div>
+        <div class="market-card-total">${fmt(totalAll)}</div>
+      </div>
+      <div class="market-stats">
+        <div class="mstat"><div class="mstat-value">${visits.length}</div><div class="mstat-label">Visitas</div></div>
+        <div class="mstat"><div class="mstat-value">${fmt(avgTicket)}</div><div class="mstat-label">Ticket médio</div></div>
+        <div class="mstat"><div class="mstat-value">${fmt(totalAll)}</div><div class="mstat-label">Total</div></div>
+      </div>
+    </div>`;
+  });
+
+  list.innerHTML = html;
+
+  // Comparativo
+  if(Object.keys(byMarket).length >= 2) {
+    renderComparativo(byMarket);
+  }
+}
+
+function renderComparativo(byMarket) {
+  const banner = document.getElementById('compareBanner');
+  const container = document.getElementById('compareItems');
+  // Find common items
+  const itemPrices = {};
+  Object.entries(byMarket).forEach(([market, visits]) => {
+    visits.forEach(v => v.items.forEach(item => {
+      if(!item.price) return;
+      if(!itemPrices[item.name]) itemPrices[item.name] = {};
+      if(!itemPrices[item.name][market]) itemPrices[item.name][market] = [];
+      itemPrices[item.name][market].push(item.price);
+    }));
+  });
+
+  const commons = Object.entries(itemPrices).filter(([,markets]) => Object.keys(markets).length >= 2);
+  if(commons.length === 0) { banner.style.display='none'; return; }
+
+  banner.style.display = 'block';
+  let html = '';
+  commons.slice(0,5).forEach(([name, markets]) => {
+    const entries = Object.entries(markets).map(([m,prices]) => ({m, avg: prices.reduce((a,b)=>a+b)/prices.length}));
+    entries.sort((a,b)=>a.avg-b.avg);
+    const cheapest = entries[0];
+    const priciest = entries[entries.length-1];
+    html += `<div class="compare-item">
+      <div class="compare-product">${name}</div>
+      <div class="compare-markets">
+        <span class="compare-tag cheap">✓ ${cheapest.m.split(' ')[0]} ${fmt(cheapest.avg)}</span>
+        ${priciest !== cheapest ? `<span class="compare-tag expensive">↑ ${priciest.m.split(' ')[0]} ${fmt(priciest.avg)}</span>`:''}
+      </div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+// ── ANÁLISE ──
+let displayMonth, displayYear;
+
+function renderAnalise() {
+  displayMonth = displayMonth ?? state.currentMonth;
+  displayYear = displayYear ?? state.currentYear;
+
+  const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('monthName').textContent = monthNames[displayMonth]+' '+displayYear;
+
+  const monthHistory = state.history.filter(h => {
+    const d = new Date(h.date);
+    return d.getMonth() === displayMonth && d.getFullYear() === displayYear;
+  });
+
+  const total = monthHistory.reduce((s,h)=>s+h.total,0);
+  const visits = monthHistory.length;
+  const ticket = visits ? total/visits : 0;
+
+  // prev month
+  const prevMonth = displayMonth === 0 ? 11 : displayMonth-1;
+  const prevYear = displayMonth === 0 ? displayYear-1 : displayYear;
+  const prevHistory = state.history.filter(h => {
+    const d = new Date(h.date);
+    return d.getMonth() === prevMonth && d.getFullYear() === prevYear;
+  });
+  const prevTotal = prevHistory.reduce((s,h)=>s+h.total,0);
+  const diff = prevTotal ? total - prevTotal : 0;
+
+  document.getElementById('statTotal').textContent = fmt(total);
+  document.getElementById('statVisits').textContent = visits;
+  document.getElementById('statTicket').textContent = fmt(ticket);
+  document.getElementById('statSavings').textContent = diff < 0 ? fmt(Math.abs(diff)) : 'R$ 0,00';
+  document.getElementById('statVsLast').textContent = prevTotal ? (diff>0?'↑ +':'↓ ')+fmt(Math.abs(diff))+' vs mês ant.' : 'Primeiro mês';
+
+  // Cat bars
+  const catTotals = {};
+  monthHistory.forEach(h => h.items.forEach(item => {
+    if(!item.price) return;
+    catTotals[item.category] = (catTotals[item.category]||0) + item.price*item.qty;
+  }));
+
+  const catContainer = document.getElementById('catBarsContainer');
+  if(Object.keys(catTotals).length === 0) {
+    catContainer.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:13px;padding:20px 0">Sem dados neste mês</div>';
+  } else {
+    const maxVal = Math.max(...Object.values(catTotals));
+    catContainer.innerHTML = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).map(([cat,val]) => {
+      const catData = CATEGORIES[cat]||{emoji:'📦'};
+      const pct = (val/maxVal)*100;
+      return `<div class="bar-row">
+        <div class="bar-name">${catData.emoji} ${cat}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <div class="bar-value">${fmt(val)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Trend SVG (last 6 months)
+  renderTrend();
+}
+
+function changeMonth(dir) {
+  displayMonth += dir;
+  if(displayMonth < 0) { displayMonth = 11; displayYear--; }
+  if(displayMonth > 11) { displayMonth = 0; displayYear++; }
+  renderAnalise();
+}
+
+function renderTrend() {
+  const months = [];
+  for(let i=5;i>=0;i--) {
+    let m = (displayMonth-i+12)%12;
+    let y = displayYear - (displayMonth-i < 0 ? 1 : 0);
+    const total = state.history.filter(h => {
+      const d=new Date(h.date); return d.getMonth()===m&&d.getFullYear()===y;
+    }).reduce((s,h)=>s+h.total,0);
+    months.push({m,y,total});
+  }
+
+  const maxVal = Math.max(...months.map(m=>m.total), 1);
+  const mn = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  const pts = months.map((m,i) => ({
+    x: 20 + i*(260/5),
+    y: 80 - (m.total/maxVal)*65
+  }));
+
+  const path = pts.map((p,i)=>i===0?`M${p.x},${p.y}`:`L${p.x},${p.y}`).join(' ');
+  const area = path + ` L${pts[pts.length-1].x},90 L${pts[0].x},90 Z`;
+
+  const svg = document.getElementById('trendSvg');
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <path d="${area}" fill="url(#trendGrad)"/>
+    <path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    ${pts.map((p,i)=>`
+      <circle cx="${p.x}" cy="${p.y}" r="3" fill="var(--accent)"/>
+      <text x="${p.x}" y="98" text-anchor="middle" fill="var(--text3)" font-size="9">${mn[months[i].m]}</text>
+    `).join('')}
+  `;
+}
+
+// ── BUDGET ──
+function updateBudgetCircle() {
+  const spent = state.history.filter(h => {
+    const d=new Date(h.date);
+    return d.getMonth()===new Date().getMonth()&&d.getFullYear()===new Date().getFullYear();
+  }).reduce((s,h)=>s+h.total,0);
+
+  // Also add current list
+  const currentSpent = state.items.reduce((s,i)=>s+(i.price?i.price*i.qty:0),0);
+  const totalSpent = spent + currentSpent;
+
+  document.getElementById('bdSpent').textContent = fmt(totalSpent);
+
+  const budget = state.budget;
+  const circle = document.getElementById('budgetCircle');
+  const pctEl = document.getElementById('budgetPct');
+  const bdLimit = document.getElementById('bdLimit');
+  const bdLeft = document.getElementById('bdLeft');
+
+  if(budget) {
+    const pct = Math.min(totalSpent/budget, 1);
+    const dashOffset = 427 - pct*427;
+    circle.style.strokeDashoffset = dashOffset;
+    circle.style.stroke = pct >= 1 ? 'var(--danger)' : pct >= 0.8 ? 'var(--accent3)' : 'var(--accent)';
+    pctEl.textContent = Math.round(pct*100)+'%';
+    bdLimit.textContent = fmt(budget);
+    bdLeft.textContent = fmt(Math.max(budget-totalSpent,0));
+    if(pct >= 0.8 && pct < 1) showToast('⚠️ Você usou '+Math.round(pct*100)+'% do orçamento!');
+    if(pct >= 1) showToast('🚨 Orçamento estourado!');
+  } else {
+    circle.style.strokeDashoffset = 427;
+    pctEl.textContent = '—';
+    bdLimit.textContent = 'Não def.';
+    bdLeft.textContent = '—';
+  }
+}
+
+function saveGoal() {
+  const val = parseFloat(document.getElementById('goalInput').value);
+  if(!val || val <= 0) { showToast('Digite um valor válido!'); return; }
+  state.budget = val;
+  document.getElementById('savingsGoal').textContent = fmt(val);
+  saveState();
+  updateBudgetCircle();
+  closeModal('goalModal');
+  showToast('🎯 Meta de '+fmt(val)+' definida!');
+}
+
+// ── SHARE ──
+function shareList() {
+  let text = `🛒 *Minha lista de compras — ListaFácil*\n`;
+  if(state.currentMarket) text += `🏪 Mercado: ${state.currentMarket}\n\n`;
+
+  const groups = {};
+  state.items.forEach(i => { if(!groups[i.category]) groups[i.category]=[]; groups[i.category].push(i); });
+
+  Object.entries(groups).forEach(([cat,items]) => {
+    const catData = CATEGORIES[cat]||{emoji:'📦'};
+    text += `*${catData.emoji} ${cat}*\n`;
+    items.forEach(i => {
+      text += `${i.emoji} ${i.name} (${i.qty}${i.unit})${i.price?' — '+fmt(i.price*i.qty):''}\n`;
+    });
+    text += '\n';
+  });
+
+  const total = state.items.reduce((s,i)=>s+(i.price?i.price*i.qty:0),0);
+  if(total > 0) text += `💰 *Total: ${fmt(total)}*\n`;
+  text += '\nGerado pelo ListaFácil 🛒';
+
+  const url = 'https://wa.me/?text='+encodeURIComponent(text);
+  window.open(url,'_blank');
+}
+
+// ── MODALS ──
+function openModal(id) {
+  if(id==='marketModal') renderMarketModal();
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModalOutside(e, id) { if(e.target === document.getElementById(id)) closeModal(id); }
+
+// ── PREMIUM ──
+function selectPlan(plan) {
+  state.selectedPlan = plan;
+  document.getElementById('planMonthly').classList.toggle('selected', plan==='monthly');
+  document.getElementById('planAnnual').classList.toggle('selected', plan==='annual');
+}
+
+function subscribe() {
+  // In production: integrate Stripe
+  showToast('🚀 Redirecionando para pagamento...');
+  setTimeout(()=>{
+    closeModal('premiumModal');
+    showToast('✨ Bem-vindo ao Pro! (demo)');
+    state.isPremium = true;
+    document.getElementById('planLabel').textContent = '✨ Plano Premium';
+    saveState();
+    updateLimitBar();
+  }, 1500);
+}
+
+// ── THEME ──
+function toggleTheme() {
+  state.darkMode = !state.darkMode;
+  document.body.classList.toggle('light-mode', !state.darkMode);
+  updateThemeToggle();
+  saveState();
+}
+function updateThemeToggle() {
+  document.getElementById('themeToggle').textContent = state.darkMode ? '🌙' : '☀️';
+  document.getElementById('darkToggle').classList.toggle('on', state.darkMode);
+  document.body.classList.toggle('light-mode', !state.darkMode);
+}
+
+// ── PDF EXPORT ──
+function exportPDF() {
+  if(!state.isPremium) { showToast('🔒 Recurso Premium!'); openModal('premiumModal'); return; }
+  showToast('📄 Exportando relatório... (em breve)');
+}
+
+// ── CLEAR DATA ──
+function clearData() {
+  if(confirm('Tem certeza? Todos os dados serão apagados!')) {
+    localStorage.removeItem('listafacil_state');
+    state = { items:[], markets:['Supermercado Extra','Atacadão','Carrefour','Pão de Açúcar','Mercadinho'], currentMarket:null, budget:null, currentMonth:new Date().getMonth(), currentYear:new Date().getFullYear(), history:[], darkMode:true, isPremium:false, selectedPlan:'annual' };
+    renderItems(); renderSuggestions(); updateLimitBar(); updateBudgetCircle(); renderMarketsPage();
+    showToast('🗑️ Dados apagados!');
+  }
+}
+
+// ── TOAST ──
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// ── UTILS ──
+function fmt(val) { return 'R$ '+val.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
+function capitalizeFirst(str) { return str.charAt(0).toUpperCase()+str.slice(1).toLowerCase(); }
+
+// ── START ──
+init();
+</script>
+</body>
+</html>
